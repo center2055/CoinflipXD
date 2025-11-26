@@ -23,6 +23,7 @@ I coded this because every other coinflip plugin I tried either had critical bug
 - `/cf` - Open the Coinflip GUI (Permission: `coinflip.use`)
 - `/cf <amount>` - Create a public game
 - `/cf <player> <amount>` - Challenge a specific player (Permission: `coinflip.private`)
+- `/cf cancel` - Cancels current Coinflip (with refund)
 - `/cf help` - View help menu
 - `/cf reload` - Reload configuration (Permission: `coinflip.admin`)
 
