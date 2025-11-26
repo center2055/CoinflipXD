@@ -1,0 +1,40 @@
+# CoinFlip configuration
+# Reload with /cf reload (requires coinflip.admin)
+
+economy:
+  # Minimum bet size in whole currency units
+  min-bet: 100
+  # Maximum bet size in whole currency units
+  max-bet: 100000
+  # When true, only whole number amounts are allowed
+  require-whole-numbers: true
+
+tax:
+  enabled: true
+  # Percentage of the total pot taxed on each win (0-100)
+  percent: 10.0
+  # "server" to remove taxed funds, or set to a player name to receive them
+  recipient: "server"
+
+ui:
+  browser:
+    # Number of inventory rows for the public browser GUI (1-6)
+    rows: 6
+    # Maximum items per page (should match rows * 9 minus navigation)
+    items-per-page: 45
+  # Seconds before public games expire
+  expire-seconds: 120
+  # Seconds before private challenges expire
+  private-expire-seconds: 60
+  sounds:
+    open: UI_BUTTON_CLICK
+    accept: ENTITY_EXPERIENCE_ORB_PICKUP
+    win: UI_TOAST_CHALLENGE_COMPLETE
+    lose: BLOCK_ANVIL_LAND
+
+limits:
+  # Allow only one active game per player (as creator)
+  one-active-per-player: true
+
+messages-format: MINI_MESSAGE
+

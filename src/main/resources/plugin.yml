@@ -1,0 +1,31 @@
+name: CoinflipXD
+main: com.yourorg.coinflip.CoinFlipPlugin
+version: 1.0.1
+api-version: 1.21
+authors:
+  - YourOrg
+description: CoinflipXD wagering plugin with Vault economy integration.
+depend:
+  - Vault
+commands:
+  cf:
+    description: CoinFlip commands
+    usage: /<command> [amount|player|subcommand]
+    permission: coinflip.use
+permissions:
+  coinflip.use:
+    description: Allows creating and accepting public coinflips and opening the GUI
+    default: true
+  coinflip.private:
+    description: Allows creating private coinflip challenges
+    default: false
+  coinflip.bypass.minmax:
+    description: Allows bypassing min/max bet limits
+    default: false
+  coinflip.admin:
+    description: Allows reloading configuration and administrating games
+    default: false
+  coinflip.notify:
+    description: Receives staff notifications for coinflip events
+    default: false
+
