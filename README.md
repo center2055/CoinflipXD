@@ -15,7 +15,7 @@ I coded this because every other coinflip plugin I tried either had critical bug
 - **Paper Native**: Optimized for Paper servers.
 
 ## Supported Versions
-- **Minecraft**: 1.21.1 (and compatible 1.21.x versions)
+- **Minecraft**: 1.21.x
 - **Java**: Java 21 or newer required
 - **Platform**: Paper (and forks)
 
