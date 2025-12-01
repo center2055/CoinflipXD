@@ -97,6 +97,16 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>org.xerial:sqlite-jdbc</artifact>
+                                    <excludes>
+                                        <exclude>org/sqlite/util/ProcessRunner.class</exclude>
+                                        <exclude>org/sqlite/util/OSInfo.class</exclude>
+                                        <exclude>org/sqlite/util/OSInfo$*.class</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                             <relocations>
                                 <relocation>
                                     <pattern>org.sqlite</pattern>
@@ -122,4 +132,3 @@
         </plugins>
     </build>
 </project>
-
