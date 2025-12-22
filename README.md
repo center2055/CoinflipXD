@@ -15,7 +15,7 @@ I coded this because every other coinflip plugin I tried either had critical bug
 - **Multi-Platform Support**: Optimized for Paper servers with enhanced compatibility for Bukkit and Spigot.
 - **Net Worth Protection**: Configure maximum percentage of a player's balance that can be wagered per bet to prevent excessive losses.
 - **Geyser Integration**: Native support for Bedrock Edition players through GeyserMC, with custom form interfaces for better cross-platform experience.
-- **Interactive Help System**: Built-in help book accessible via `/cf help` that showcases all available commands and features.
+- **Interactive Help System**: Built-in help book accessible via the book icon in the `/cf` GUI that showcases all available commands and features.
 
 ## Supported Versions
 - **Minecraft**: 1.21.x
@@ -28,7 +28,7 @@ I coded this because every other coinflip plugin I tried either had critical bug
 - `/cf <amount>` - Create a public game
 - `/cf <player> <amount>` - Challenge a specific player (Permission: `coinflip.private`)
 - `/cf cancel` - Cancels current Coinflip (with refund)
-- `/cf help` - View help menu
+- `/cf help` - View help menu (text format)
 - `/cf reload` - Reload configuration (Permission: `coinflip.admin`)
 
 ## Installation
