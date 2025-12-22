@@ -1,16 +1,26 @@
 name: CoinflipXD
 main: com.yourorg.coinflip.CoinFlipPlugin
-version: 1.0.1
+version: 1.1
 api-version: 1.21
 authors:
   - YourOrg
 description: CoinflipXD wagering plugin with Vault economy integration.
 depend:
   - Vault
+softdepend:
+  - Floodgate
+  - Geyser-Spigot
 commands:
   cf:
     description: CoinFlip commands
-    usage: /<command> [amount|player|subcommand]
+    usage: |-
+      /<command> - open coinflip browser
+      /<command> <amount> - create public coinflip
+      /<command> <amount> <player> - create private coinflip
+      /<command> <player> accept|deny - respond to private coinflip
+      /<command> cancel - cancel your coinflip
+      /<command> stats [player] - view stats
+      /<command> reload - reload config (admin)
     permission: coinflip.use
 permissions:
   coinflip.use:
@@ -28,4 +38,3 @@ permissions:
   coinflip.notify:
     description: Receives staff notifications for coinflip events
     default: false
-

@@ -31,5 +31,17 @@ public final class BetUtil {
 
         return amount;
     }
+
+    public static double maxBalanceBet(double balance, CoinFlipConfig.EconomySettings settings) {
+        if (balance <= 0 || settings == null) {
+            return 0D;
+        }
+        double percentLimit = balance * (settings.maxBalancePercent() / 100.0D);
+        double limit = Math.min(settings.maxBet(), percentLimit);
+        if (settings.requireWholeNumbers()) {
+            limit = Math.floor(limit);
+        }
+        return Math.max(0D, limit);
+    }
 }
 

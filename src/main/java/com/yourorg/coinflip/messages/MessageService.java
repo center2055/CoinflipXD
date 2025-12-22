@@ -7,12 +7,15 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.command.CommandSender;
 
 import java.io.File;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 public final class MessageService {
@@ -32,13 +35,61 @@ public final class MessageService {
             plugin.saveResource("messages.yml", false);
         }
         this.messages = YamlConfiguration.loadConfiguration(file);
+        mergeMissingMessageKeys(file);
         this.miniMessage = MiniMessage.miniMessage();
+    }
+
+    private void mergeMissingMessageKeys(File file) {
+        try (InputStreamReader reader = new InputStreamReader(
+                Objects.requireNonNull(plugin.getResource("messages.yml"), "Missing bundled messages.yml"),
+                StandardCharsets.UTF_8
+        )) {
+            YamlConfiguration defaults = YamlConfiguration.loadConfiguration(reader);
+            boolean changed = mergeMissingKeys(messages, defaults);
+            if (changed) {
+                messages.save(file);
+            }
+        } catch (Exception ex) {
+            plugin.getLogger().warning("Failed to merge default message keys: " + ex.getMessage());
+        }
+    }
+
+    private boolean mergeMissingKeys(ConfigurationSection target, ConfigurationSection defaults) {
+        boolean changed = false;
+        for (String key : defaults.getKeys(false)) {
+            if (defaults.isConfigurationSection(key)) {
+                ConfigurationSection defSection = defaults.getConfigurationSection(key);
+                if (defSection == null) {
+                    continue;
+                }
+                ConfigurationSection targetSection = target.getConfigurationSection(key);
+                if (targetSection == null) {
+                    targetSection = target.createSection(key);
+                    changed = true;
+                }
+                changed |= mergeMissingKeys(targetSection, defSection);
+                continue;
+            }
+
+            if (!target.contains(key)) {
+                target.set(key, defaults.get(key));
+                changed = true;
+            }
+        }
+        return changed;
     }
 
     public Component component(String key, TagResolver... placeholders) {
         String raw = messages.getString(key);
         if (raw == null) {
             return Component.text("Missing message: " + key);
+        }
+        return parse(raw, placeholders);
+    }
+
+    public Component parse(String raw, TagResolver... placeholders) {
+        if (raw == null) {
+            return Component.empty();
         }
         if (plugin.config().miniMessage()) {
             TagResolver resolver = PlaceholderUtil.merge(placeholders);
@@ -75,6 +126,10 @@ public final class MessageService {
 
     public void broadcast(String key, TagResolver... placeholders) {
         Component message = prefixed(key, placeholders);
+        Bukkit.getOnlinePlayers().forEach(player -> plugin.audiences().player(player).sendMessage(message));
+    }
+
+    public void broadcast(Component message) {
         Bukkit.getOnlinePlayers().forEach(player -> plugin.audiences().player(player).sendMessage(message));
     }
 

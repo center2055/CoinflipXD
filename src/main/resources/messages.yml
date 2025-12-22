@@ -2,6 +2,7 @@ prefix: "<gray>[<red>CF</red>]</gray> "
 
 no-permission: "<red>No permission.</red>"
 invalid-amount: "<yellow>Enter a valid amount between $<min> and $<max>.</yellow>"
+balance-limit: "<yellow>You can only bet up to <percent>% of your balance ($<max>).</yellow>"
 insufficient-funds: "<red>You don't have enough money.</red>"
 game-created: "<green>Posted a coinflip for <aqua>$<amount></aqua>. It expires in <white><secs>s</white>.</green>"
 private-sent: "<green>Sent a private coinflip to <white><target></white> for <aqua>$<amount></aqua>.</green>"
@@ -19,4 +20,3 @@ busy: "<yellow>You're already resolving another coinflip.</yellow>"
 reloaded: "<green>CoinFlip reloaded.</green>"
 notify-error: "<red>[CoinflipXD] Error: <message></red>"
 notify-suspicious: "<yellow>[CoinflipXD] Suspicious activity: <message></yellow>"
-

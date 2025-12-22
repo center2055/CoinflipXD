@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class BetUtilTest {
 
     private static final CoinFlipConfig.EconomySettings ECONOMY_SETTINGS =
-            new CoinFlipConfig.EconomySettings(100.0D, 100000.0D, true);
+            new CoinFlipConfig.EconomySettings(100.0D, 100000.0D, 100.0D, true);
 
     @Test
     void parsesValidWholeNumberWithinLimits() {
@@ -33,6 +33,12 @@ class BetUtilTest {
     void rejectsNegativeAmount() {
         assertThrows(IllegalArgumentException.class,
                 () -> BetUtil.parseAmount("-10", ECONOMY_SETTINGS, false));
+    }
+
+    @Test
+    void computesMaxBalanceBetFromPercent() {
+        CoinFlipConfig.EconomySettings settings = new CoinFlipConfig.EconomySettings(100.0D, 100000.0D, 50.0D, true);
+        assertEquals(500D, BetUtil.maxBalanceBet(1000D, settings));
     }
 }
 

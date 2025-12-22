@@ -1,0 +1,44 @@
+name: Dart Build
+
+on: [pull_request, push]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        sdk: [stable]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ matrix.sdk }}
+
+      - name: Install dependencies
+        run: dart pub get
+
+
+      - name: Compile windows binary
+        run: dart compile exe bin/modrinth.dart -o modrinth.exe
+        if: matrix.os == 'windows-latest'
+
+      - name: Compile binary
+        run: dart compile exe bin/modrinth.dart -o modrinth
+        if: matrix.os != 'windows-latest'
+
+
+      - name: Upload windows artifact
+        uses: actions/upload-artifact@v3.0.0
+        if: matrix.os == 'windows-latest'
+        with:
+            name: artifacts-${{ matrix.os }}
+            path: modrinth.exe
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3.0.0
+        if: matrix.os != 'windows-latest'
+        with:
+            name: artifacts-${{ matrix.os }}
+            path: modrinth
+

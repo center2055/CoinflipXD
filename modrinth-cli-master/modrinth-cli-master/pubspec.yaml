@@ -1,0 +1,26 @@
+name: modrinth
+description: A CLI wrapper for the Modrinth API
+version: 0.0.5
+
+environment:
+  sdk: '>=3.0.0'
+
+publish_to: none
+
+dev_dependencies:
+  lints: ^2.1.1
+  json_serializable: ^6.1.5
+  build_runner: ^2.1.8
+
+dependencies: 
+  args: ^2.3.0
+  console: ^4.1.0
+  crypto: ^3.0.3
+  http: ^1.1.0
+  json_annotation: ^4.4.0
+  logging: ^1.0.2
+  modrinth_api: 
+    git: 
+      url: https://github.com/gliscowo/modrinth_api
+      ref: acf10b8
+  path: ^1.8.2

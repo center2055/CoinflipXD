@@ -6,6 +6,8 @@ economy:
   min-bet: 100
   # Maximum bet size in whole currency units
   max-bet: 100000
+  # Maximum percentage of a player's balance allowed per bet (0-100)
+  max-balance-percent: 100.0
   # When true, only whole number amounts are allowed
   require-whole-numbers: true
 
@@ -35,6 +37,12 @@ ui:
 limits:
   # Allow only one active game per player (as creator)
   one-active-per-player: true
+
+broadcast:
+  # Broadcast a chat message when a public coinflip is created
+  enabled: false
+  # Placeholders: %player%, %amount% (or MiniMessage tags <player>, <amount>)
+  message: "<gray>%player% created a coinflip for <aqua>$%amount%</aqua>.</gray>"
 
 messages-format: MINI_MESSAGE
 

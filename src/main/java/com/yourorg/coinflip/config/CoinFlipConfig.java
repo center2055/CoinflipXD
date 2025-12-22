@@ -7,10 +7,11 @@ public record CoinFlipConfig(
         TaxSettings tax,
         UiSettings ui,
         LimitSettings limits,
+        BroadcastSettings broadcast,
         boolean miniMessage
 ) {
 
-    public record EconomySettings(double minBet, double maxBet, boolean requireWholeNumbers) {
+    public record EconomySettings(double minBet, double maxBet, double maxBalancePercent, boolean requireWholeNumbers) {
     }
 
     public record TaxSettings(boolean enabled, double percent, String recipient) {
@@ -26,6 +27,9 @@ public record CoinFlipConfig(
     }
 
     public record LimitSettings(boolean oneActivePerPlayer) {
+    }
+
+    public record BroadcastSettings(boolean enabled, String message) {
     }
 }
 

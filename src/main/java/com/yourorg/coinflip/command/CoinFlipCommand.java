@@ -1,11 +1,13 @@
 package com.yourorg.coinflip.command;
 
 import com.yourorg.coinflip.CoinFlipPlugin;
+import com.yourorg.coinflip.config.CoinFlipConfig;
 import com.yourorg.coinflip.game.CoinFlipGame;
 import com.yourorg.coinflip.game.GameService;
 import com.yourorg.coinflip.messages.MessageService;
 import com.yourorg.coinflip.stats.PlayerStats;
 import com.yourorg.coinflip.util.BetUtil;
+import com.yourorg.coinflip.util.HelpUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -143,16 +145,17 @@ public final class CoinFlipCommand implements CommandExecutor, TabCompleter {
 
     private boolean handleAmountSubcommand(Player player, String[] args) {
         double amount;
+        CoinFlipConfig.EconomySettings economy = plugin.config().economy();
+        boolean bypass = player.hasPermission("coinflip.bypass.minmax");
         try {
-            amount = BetUtil.parseAmount(args[0], plugin.config().economy(), player.hasPermission("coinflip.bypass.minmax"));
+            amount = BetUtil.parseAmount(args[0], economy, bypass);
         } catch (IllegalArgumentException ex) {
             sendInvalidAmount(player);
             return true;
         }
 
         if (args.length == 1) {
-            if (!plugin.economyService().hasBalance(player, amount)) {
-                messages.send(player, "insufficient-funds");
+            if (!checkFundsAndLimits(player, amount, economy, bypass)) {
                 return true;
             }
             plugin.guiService().openCreateConfirm(player, amount);
@@ -174,8 +177,7 @@ public final class CoinFlipCommand implements CommandExecutor, TabCompleter {
                 messages.send(player, "self-accept");
                 return true;
             }
-            if (!plugin.economyService().hasBalance(player, amount)) {
-                messages.send(player, "insufficient-funds");
+            if (!checkFundsAndLimits(player, amount, economy, bypass)) {
                 return true;
             }
             gameService.createPrivateGame(player, target, amount);
@@ -257,21 +259,37 @@ public final class CoinFlipCommand implements CommandExecutor, TabCompleter {
     private void sendHelp(CommandSender sender) {
         List<Component> lines = new ArrayList<>();
         lines.add(Component.text("CoinflipXD Commands:", NamedTextColor.GOLD));
-        lines.add(Component.text("/cf - open browser", NamedTextColor.YELLOW));
-        lines.add(Component.text("/cf <amount> - create public coinflip", NamedTextColor.YELLOW));
-        lines.add(Component.text("/cf <amount> <player> - challenge player", NamedTextColor.YELLOW));
-        lines.add(Component.text("/cf <player> accept|deny - respond to private challenge", NamedTextColor.YELLOW));
-        lines.add(Component.text("/cf cancel - cancel your coinflip", NamedTextColor.YELLOW));
-        lines.add(Component.text("/cf stats [player] - view stats", NamedTextColor.YELLOW));
-        if (hasAdmin(sender)) {
-            lines.add(Component.text("/cf reload - reload configuration", NamedTextColor.YELLOW));
-            lines.add(Component.text("/cf cancel <player> - force cancel coinflip", NamedTextColor.YELLOW));
+        for (HelpUtil.HelpEntry entry : HelpUtil.entries(hasAdmin(sender))) {
+            lines.add(Component.text(entry.command() + " - " + entry.description(), NamedTextColor.YELLOW));
         }
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             for (Component line : lines) {
                 messages.sender(sender).sendMessage(line);
             }
         });
+    }
+
+    private boolean checkFundsAndLimits(Player player, double amount, CoinFlipConfig.EconomySettings economy, boolean bypass) {
+        if (!plugin.economyService().hasBalance(player, amount)) {
+            messages.send(player, "insufficient-funds");
+            return false;
+        }
+        if (bypass) {
+            return true;
+        }
+        double balance = plugin.economyService().balance(player);
+        double maxAllowed = BetUtil.maxBalanceBet(balance, economy);
+        if (amount <= maxAllowed) {
+            return true;
+        }
+        sendBalanceLimit(player, maxAllowed, economy);
+        return false;
+    }
+
+    private void sendBalanceLimit(Player player, double maxAllowed, CoinFlipConfig.EconomySettings economy) {
+        messages.send(player, "balance-limit",
+                Placeholder.parsed("percent", plugin.economyService().formatNumber(economy.maxBalancePercent())),
+                Placeholder.parsed("max", plugin.economyService().formatNumber(maxAllowed)));
     }
 
     private boolean isNumeric(String input) {
@@ -351,4 +369,3 @@ public final class CoinFlipCommand implements CommandExecutor, TabCompleter {
         return player.isOp() || player.hasPermission("coinflip.admin");
     }
 }
-

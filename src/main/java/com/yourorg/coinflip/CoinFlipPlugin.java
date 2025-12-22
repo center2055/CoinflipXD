@@ -8,10 +8,15 @@ import com.yourorg.coinflip.game.GameService;
 import com.yourorg.coinflip.gui.GuiService;
 import com.yourorg.coinflip.messages.MessageService;
 import com.yourorg.coinflip.stats.StatsService;
+import com.yourorg.coinflip.util.GeyserUtil;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.List;
 
 public final class CoinFlipPlugin extends JavaPlugin {
 
@@ -24,6 +29,8 @@ public final class CoinFlipPlugin extends JavaPlugin {
     private StatsService statsService;
     private GameService gameService;
     private GuiService guiService;
+    private CoinFlipCommand commandExecutor;
+    private GeyserUtil geyserUtil;
 
     private CoinFlipConfig config;
 
@@ -51,6 +58,7 @@ public final class CoinFlipPlugin extends JavaPlugin {
         this.statsService = new StatsService(this);
         statsService.init();
 
+        this.geyserUtil = new GeyserUtil(this);
         this.gameService = new GameService(this);
         this.guiService = new GuiService(this);
 
@@ -59,9 +67,11 @@ public final class CoinFlipPlugin extends JavaPlugin {
 
         PluginCommand command = getCommand("cf");
         if (command != null) {
-            CoinFlipCommand executor = new CoinFlipCommand(this);
-            command.setExecutor(executor);
-            command.setTabCompleter(executor);
+            this.commandExecutor = new CoinFlipCommand(this);
+            command.setExecutor(commandExecutor);
+            command.setTabCompleter(commandExecutor);
+        } else {
+            getLogger().severe("Command 'cf' was not found in plugin.yml; commands will not work correctly.");
         }
     }
 
@@ -78,6 +88,22 @@ public final class CoinFlipPlugin extends JavaPlugin {
             audiences = null;
         }
         instance = null;
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if ("cf".equalsIgnoreCase(command.getName()) && commandExecutor != null) {
+            return commandExecutor.onCommand(sender, command, label, args);
+        }
+        return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if ("cf".equalsIgnoreCase(command.getName()) && commandExecutor != null) {
+            return commandExecutor.onTabComplete(sender, command, alias, args);
+        }
+        return super.onTabComplete(sender, command, alias, args);
     }
 
     public BukkitAudiences audiences() {
@@ -114,6 +140,10 @@ public final class CoinFlipPlugin extends JavaPlugin {
 
     public GuiService guiService() {
         return guiService;
+    }
+
+    public GeyserUtil geyserUtil() {
+        return geyserUtil;
     }
 }
 

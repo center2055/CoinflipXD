@@ -5,6 +5,7 @@ import com.yourorg.coinflip.config.CoinFlipConfig;
 import com.yourorg.coinflip.economy.EconomyService;
 import com.yourorg.coinflip.messages.MessageService;
 import com.yourorg.coinflip.stats.StatsService;
+import com.yourorg.coinflip.util.BetUtil;
 import com.yourorg.coinflip.util.PayoutCalculator;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -144,6 +145,9 @@ public final class GameService implements Listener {
             messages.send(creator, "insufficient-funds");
             return false;
         }
+        if (!checkBalanceLimit(creator, amount)) {
+            return false;
+        }
         if (!economy.withdraw(creator, amount)) {
             messages.send(creator, "insufficient-funds");
             return false;
@@ -161,6 +165,7 @@ public final class GameService implements Listener {
                 Placeholder.parsed("secs", String.valueOf(plugin.config().ui().expireSeconds())));
 
         playSound(creator, plugin.config().ui().sounds().open());
+        broadcastCreatedGame(creator, amount);
         return true;
     }
 
@@ -175,6 +180,9 @@ public final class GameService implements Listener {
         }
         if (!economy.hasBalance(creator, amount)) {
             messages.send(creator, "insufficient-funds");
+            return false;
+        }
+        if (!checkBalanceLimit(creator, amount)) {
             return false;
         }
         if (!economy.withdraw(creator, amount)) {
@@ -285,6 +293,9 @@ public final class GameService implements Listener {
 
             if (!economy.hasBalance(acceptor, game.amount())) {
                 messages.send(acceptor, "insufficient-funds");
+                return false;
+            }
+            if (!checkBalanceLimit(acceptor, game.amount())) {
                 return false;
             }
 
@@ -472,6 +483,28 @@ public final class GameService implements Listener {
         return economy.formatNumber(amount);
     }
 
+    private void broadcastCreatedGame(Player creator, double amount) {
+        CoinFlipConfig.BroadcastSettings broadcast = plugin.config().broadcast();
+        if (!broadcast.enabled()) {
+            return;
+        }
+        String template = broadcast.message();
+        if (template == null || template.isBlank()) {
+            return;
+        }
+
+        String formattedAmount = formatAmount(amount);
+        String resolved = template
+                .replace("%player%", creator.getName())
+                .replace("%amount%", formattedAmount);
+
+        Component message = messages.component("prefix").append(messages.parse(resolved,
+                Placeholder.parsed("player", creator.getName()),
+                Placeholder.parsed("amount", formattedAmount)
+        ));
+        messages.broadcast(message);
+    }
+
     private enum CancelReason {
         EXPIRED(GameState.EXPIRED),
         CANCELED(GameState.CANCELED),
@@ -491,5 +524,23 @@ public final class GameService implements Listener {
             return state;
         }
     }
-}
 
+    private boolean checkBalanceLimit(Player player, double amount) {
+        if (player.hasPermission("coinflip.bypass.minmax")) {
+            return true;
+        }
+        CoinFlipConfig.EconomySettings economySettings = plugin.config().economy();
+        double maxAllowed = BetUtil.maxBalanceBet(economy.balance(player), economySettings);
+        if (amount <= maxAllowed) {
+            return true;
+        }
+        messages.send(player, "balance-limit",
+                Placeholder.parsed("percent", formatPercent(economySettings.maxBalancePercent())),
+                Placeholder.parsed("max", formatAmount(maxAllowed)));
+        return false;
+    }
+
+    private String formatPercent(double percent) {
+        return economy.formatNumber(percent);
+    }
+}

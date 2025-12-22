@@ -48,6 +48,15 @@ public final class EconomyService {
         return response.transactionSuccess();
     }
 
+    public double balance(OfflinePlayer player) {
+        Objects.requireNonNull(economy, "Economy provider not set");
+        return economy.getBalance(player);
+    }
+
+    public double balance(Player player) {
+        return balance((OfflinePlayer) player);
+    }
+
     public boolean deposit(OfflinePlayer player, double amount) {
         Objects.requireNonNull(economy, "Economy provider not set");
         EconomyResponse response = economy.depositPlayer(player, amount);
@@ -73,4 +82,3 @@ public final class EconomyService {
         return Bukkit.getOfflinePlayer(name);
     }
 }
-
