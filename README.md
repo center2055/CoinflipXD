@@ -1,6 +1,6 @@
 # CoinflipXD
 
-A robust, bug-free Coinflip wagering plugin for modern Minecraft servers.
+A simple, robust, bug-free Coinflip wagering plugin for modern Minecraft servers with native Geyser integration.
 
 ## Why this exists
 I coded this because every other coinflip plugin I tried either had critical bugs, dupe glitches, or simply didn't work for the newest Minecraft versions. This project aims to provide a stable, reliable, and up-to-date solution for server owners who are tired of broken abandoned plugins.
@@ -12,15 +12,12 @@ I coded this because every other coinflip plugin I tried either had critical bug
 - **Configurable**: Customize messages, sounds, bet limits, taxes, and UI settings.
 - **Stats Tracking**: Keeps track of wins, losses, and earnings (SQLite backend).
 - **Adventure API**: Modern text formatting and MiniMessage support.
-- **Multi-Platform Support**: Optimized for Paper servers with enhanced compatibility for Bukkit and Spigot.
-- **Net Worth Protection**: Configure maximum percentage of a player's balance that can be wagered per bet to prevent excessive losses.
 - **Geyser Integration**: Native support for Bedrock Edition players through GeyserMC, with custom form interfaces for better cross-platform experience.
-- **Interactive Help System**: Built-in help book accessible via the book icon in the `/cf` GUI that showcases all available commands and features.
 
 ## Supported Versions
 - **Minecraft**: 1.21.x
 - **Java**: Java 21 or newer required
-- **Platform**: Paper (and forks), enhanced support for Bukkit and Spigot
+- **Platform**: Paper (and forks)
 - **Cross-Platform**: Native GeyserMC support for Bedrock Edition players
 
 ## Commands & Permissions
