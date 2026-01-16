@@ -7,6 +7,8 @@ import com.yourorg.coinflip.messages.MessageService;
 import com.yourorg.coinflip.stats.StatsService;
 import com.yourorg.coinflip.util.BetUtil;
 import com.yourorg.coinflip.util.PayoutCalculator;
+import com.yourorg.coinflip.util.SoundUtil;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
@@ -364,6 +366,7 @@ public final class GameService implements Listener {
         game.target().ifPresent(privateByTarget::remove);
 
         double loserLoss = game.amount();
+        double winnerProfit = winnings - game.amount();
 
         messages.send(winner, "resolved-win",
                 Placeholder.parsed("won", formatAmount(winnings)),
@@ -379,7 +382,7 @@ public final class GameService implements Listener {
         playSound(winner, plugin.config().ui().sounds().win());
         playSound(loser, plugin.config().ui().sounds().lose());
 
-        stats.recordResult(winner.getUniqueId(), loser.getUniqueId(), winnings, loserLoss);
+        stats.recordResult(winner.getUniqueId(), loser.getUniqueId(), winnerProfit, loserLoss);
 
         String logMessage = "CoinFlip resolved: " + creator.getName() + " vs " + acceptor.getName()
                 + ", winner=" + winner.getName() + ", amount=" + game.amount()
@@ -467,10 +470,7 @@ public final class GameService implements Listener {
     }
 
     private void playSound(Player player, org.bukkit.Sound sound) {
-        net.kyori.adventure.key.Key key = net.kyori.adventure.key.Key.key(
-                sound.getKey().getNamespace(),
-                sound.getKey().getKey()
-        );
+        Key key = SoundUtil.adventureKey(sound);
         messages.player(player).playSound(Sound.sound(
                 key,
                 Sound.Source.MASTER,
