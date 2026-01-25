@@ -17,7 +17,7 @@ public record CoinFlipConfig(
     public record TaxSettings(boolean enabled, double percent, String recipient) {
     }
 
-    public record UiSettings(BrowserSettings browser, int expireSeconds, int privateExpireSeconds, UiSounds sounds) {
+    public record UiSettings(BrowserSettings browser, int expireSeconds, int privateExpireSeconds, double createConfirmMin, UiSounds sounds) {
     }
 
     public record BrowserSettings(int rows, int itemsPerPage) {

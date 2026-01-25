@@ -2,7 +2,6 @@ package com.yourorg.coinflip.command;
 
 import com.yourorg.coinflip.CoinFlipPlugin;
 import com.yourorg.coinflip.config.CoinFlipConfig;
-import com.yourorg.coinflip.game.CoinFlipGame;
 import com.yourorg.coinflip.game.GameService;
 import com.yourorg.coinflip.messages.MessageService;
 import com.yourorg.coinflip.stats.PlayerStats;
@@ -24,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -113,8 +111,8 @@ public final class CoinFlipCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
             default -> {
-                // Determine if numeric amount
-                if (isNumeric(args[0])) {
+                // Determine if amount input (supports suffixes like 50k)
+                if (isAmountInput(args[0])) {
                     if (!(sender instanceof Player player)) {
                         sender.sendMessage("Player only command.");
                         return true;
@@ -158,7 +156,12 @@ public final class CoinFlipCommand implements CommandExecutor, TabCompleter {
             if (!checkFundsAndLimits(player, amount, economy, bypass)) {
                 return true;
             }
-            plugin.guiService().openCreateConfirm(player, amount);
+            double confirmMin = plugin.config().ui().createConfirmMin();
+            if (confirmMin > 0 && amount < confirmMin) {
+                gameService.createPublicGame(player, amount);
+            } else {
+                plugin.guiService().openCreateConfirm(player, amount);
+            }
             return true;
         }
 
@@ -292,13 +295,8 @@ public final class CoinFlipCommand implements CommandExecutor, TabCompleter {
                 Placeholder.parsed("max", plugin.economyService().formatNumber(maxAllowed)));
     }
 
-    private boolean isNumeric(String input) {
-        try {
-            Double.parseDouble(input);
-            return true;
-        } catch (NumberFormatException ex) {
-            return false;
-        }
+    private boolean isAmountInput(String input) {
+        return BetUtil.isAmountInput(input);
     }
 
     @Override
@@ -326,16 +324,16 @@ public final class CoinFlipCommand implements CommandExecutor, TabCompleter {
                 return filterPlayerSuggestions(args[1]);
             }
             Player player = sender instanceof Player ? (Player) sender : null;
-            if (player != null && player.hasPermission("coinflip.private") && isNumeric(args[0])) {
+            if (player != null && player.hasPermission("coinflip.private") && isAmountInput(args[0])) {
                 return filterPlayerSuggestions(args[1]);
             }
-            if (player != null && !isNumeric(args[0])) {
+            if (player != null && !isAmountInput(args[0])) {
                 return filterSuggestions(Arrays.asList("accept", "deny"), args[1]);
             }
         }
         if (args.length == 3) {
             Player player = sender instanceof Player ? (Player) sender : null;
-            if (player != null && !isNumeric(args[0])) {
+            if (player != null && !isAmountInput(args[0])) {
                 return filterSuggestions(Arrays.asList("accept", "deny"), args[2]);
             }
         }

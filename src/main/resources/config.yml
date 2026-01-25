@@ -28,6 +28,8 @@ ui:
   expire-seconds: 120
   # Seconds before private challenges expire
   private-expire-seconds: 60
+  # Minimum amount that requires confirmation for /cf <amount> (0 = always confirm)
+  create-confirm-min: 0
   sounds:
     open: UI_BUTTON_CLICK
     accept: ENTITY_EXPERIENCE_ORB_PICKUP

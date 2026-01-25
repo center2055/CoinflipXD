@@ -312,7 +312,7 @@ public final class GameService implements Listener {
             game.state(GameState.RESOLVING);
             game.acceptor(acceptor.getUniqueId());
 
-            messages.send(creator, "accepted",
+            messages.send(creator, "accepted-by",
                     Placeholder.parsed("amount", formatAmount(game.amount())),
                     Placeholder.parsed("other", acceptor.getName()));
             messages.send(acceptor, "accepted",

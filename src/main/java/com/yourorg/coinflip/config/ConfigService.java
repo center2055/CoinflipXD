@@ -57,6 +57,7 @@ public final class ConfigService {
                 browser,
                 Math.max(5, cfg.getInt("ui.expire-seconds", 120)),
                 Math.max(5, cfg.getInt("ui.private-expire-seconds", 60)),
+                Math.max(0D, cfg.getDouble("ui.create-confirm-min", 0D)),
                 sounds
         );
 
@@ -99,8 +100,13 @@ public final class ConfigService {
                 if (defSection == null) {
                     continue;
                 }
-                ConfigurationSection targetSection = target.getConfigurationSection(key);
+                boolean hasKey = target.contains(key, true);
+                ConfigurationSection targetSection = hasKey ? target.getConfigurationSection(key) : null;
                 if (targetSection == null) {
+                    if (hasKey) {
+                        plugin.getLogger().warning("Config key '" + key + "' is not a section; leaving existing value.");
+                        continue;
+                    }
                     targetSection = target.createSection(key);
                     changed = true;
                 }
@@ -108,7 +114,7 @@ public final class ConfigService {
                 continue;
             }
 
-            if (!target.contains(key)) {
+            if (!target.contains(key, true)) {
                 target.set(key, defaults.get(key));
                 changed = true;
             }

@@ -30,6 +30,18 @@ class BetUtilTest {
     }
 
     @Test
+    void parsesSuffixShorthand() {
+        assertEquals(50_000D, BetUtil.parseAmount("50k", ECONOMY_SETTINGS, false));
+        assertEquals(1_500_000D, BetUtil.parseAmount("1.5m", ECONOMY_SETTINGS, true));
+    }
+
+    @Test
+    void rejectsInvalidSuffix() {
+        assertThrows(IllegalArgumentException.class,
+                () -> BetUtil.parseAmount("10x", ECONOMY_SETTINGS, false));
+    }
+
+    @Test
     void rejectsNegativeAmount() {
         assertThrows(IllegalArgumentException.class,
                 () -> BetUtil.parseAmount("-10", ECONOMY_SETTINGS, false));

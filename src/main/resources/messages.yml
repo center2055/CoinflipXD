@@ -8,6 +8,7 @@ game-created: "<green>Posted a coinflip for <aqua>$<amount></aqua>. It expires i
 private-sent: "<green>Sent a private coinflip to <white><target></white> for <aqua>$<amount></aqua>.</green>"
 private-received: "<white><sender></white> challenged you to <aqua>$<amount></aqua>. Type <green>/cf <sender> accept</green> or <red>/cf <sender> deny</red>."
 accepted: "<green>You accepted <white><other></white>'s coinflip for <aqua>$<amount></aqua>.</green>"
+accepted-by: "<green><white><other></white> accepted your coinflip for <aqua>$<amount></aqua>.</green>"
 resolved-win: "<gold>You won! +$<won> (tax: $<tax>)</gold>"
 resolved-lose: "<red>You lost! -$<lost></red>"
 broadcast-result: "<gray><white><w></white> beat <white><l></white> in a $<pot> coinflip.</gray>"
