@@ -3,6 +3,7 @@ package com.yourorg.coinflip;
 import com.yourorg.coinflip.command.CoinFlipCommand;
 import com.yourorg.coinflip.config.ConfigService;
 import com.yourorg.coinflip.config.CoinFlipConfig;
+import com.yourorg.coinflip.config.PlayerSettingsService;
 import com.yourorg.coinflip.economy.EconomyService;
 import com.yourorg.coinflip.game.GameService;
 import com.yourorg.coinflip.gui.GuiService;
@@ -31,6 +32,7 @@ public final class CoinFlipPlugin extends JavaPlugin {
     private GuiService guiService;
     private CoinFlipCommand commandExecutor;
     private GeyserUtil geyserUtil;
+    private PlayerSettingsService playerSettingsService;
 
     private CoinFlipConfig config;
 
@@ -48,6 +50,7 @@ public final class CoinFlipPlugin extends JavaPlugin {
         this.configService = new ConfigService(this);
         this.config = configService.load();
         this.messageService = new MessageService(this);
+        this.playerSettingsService = new PlayerSettingsService(this);
         this.economyService = new EconomyService(this);
         if (!economyService.setupEconomy()) {
             getLogger().severe("Vault dependency was not found or no economy provider detected. Disabling plugin.");
@@ -144,6 +147,10 @@ public final class CoinFlipPlugin extends JavaPlugin {
 
     public GeyserUtil geyserUtil() {
         return geyserUtil;
+    }
+
+    public PlayerSettingsService playerSettingsService() {
+        return playerSettingsService;
     }
 }
 

@@ -16,6 +16,7 @@ public final class HelpUtil {
             new HelpEntry("/cf <player> accept|deny", "respond to private challenge", false),
             new HelpEntry("/cf cancel", "cancel your coinflip", false),
             new HelpEntry("/cf stats [player]", "view stats", false),
+            new HelpEntry("/cf confirmmin [amount|default]", "set your confirm threshold", false),
             new HelpEntry("/cf reload", "reload configuration", true),
             new HelpEntry("/cf cancel <player>", "force cancel coinflip", true)
     );

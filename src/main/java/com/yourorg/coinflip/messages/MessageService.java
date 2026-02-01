@@ -16,6 +16,7 @@ import org.bukkit.command.CommandSender;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.Objects;
 
 public final class MessageService {
@@ -30,18 +31,44 @@ public final class MessageService {
     }
 
     public void load() {
-        File file = new File(plugin.getDataFolder(), "messages.yml");
+        String language = resolveLanguage();
+        String resourceName = resolveResourceName(language);
+        File file = new File(plugin.getDataFolder(), resourceName);
         if (!file.exists()) {
-            plugin.saveResource("messages.yml", false);
+            if (plugin.getResource(resourceName) != null) {
+                plugin.saveResource(resourceName, false);
+            } else if (!"messages.yml".equals(resourceName)) {
+                plugin.getLogger().warning("Missing bundled " + resourceName + ", falling back to messages.yml.");
+                resourceName = "messages.yml";
+                file = new File(plugin.getDataFolder(), resourceName);
+                if (!file.exists()) {
+                    plugin.saveResource(resourceName, false);
+                }
+            }
         }
         this.messages = YamlConfiguration.loadConfiguration(file);
-        mergeMissingMessageKeys(file);
+        mergeMissingMessageKeys(file, resourceName);
         this.miniMessage = MiniMessage.miniMessage();
     }
 
-    private void mergeMissingMessageKeys(File file) {
+    private String resolveLanguage() {
+        String raw = plugin.getConfig().getString("messages-language", "en");
+        if (raw == null || raw.isBlank()) {
+            return "en";
+        }
+        return raw.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String resolveResourceName(String language) {
+        if ("de".equals(language)) {
+            return "messages_de.yml";
+        }
+        return "messages.yml";
+    }
+
+    private void mergeMissingMessageKeys(File file, String resourceName) {
         try (InputStreamReader reader = new InputStreamReader(
-                Objects.requireNonNull(plugin.getResource("messages.yml"), "Missing bundled messages.yml"),
+                Objects.requireNonNull(plugin.getResource(resourceName), "Missing bundled " + resourceName),
                 StandardCharsets.UTF_8
         )) {
             YamlConfiguration defaults = YamlConfiguration.loadConfiguration(reader);

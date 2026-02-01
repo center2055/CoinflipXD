@@ -38,6 +38,29 @@ public final class BetUtil {
         return amount;
     }
 
+    public static double parseAmountAllowZero(String input, CoinFlipConfig.EconomySettings settings, boolean bypass) {
+        double amount = parseRawAmount(input);
+
+        if (Double.isNaN(amount) || Double.isInfinite(amount) || amount < 0) {
+            throw new IllegalArgumentException("Amount must be non-negative");
+        }
+
+        if (settings.requireWholeNumbers()) {
+            if (!isWholeNumber(amount)) {
+                throw new IllegalArgumentException("Amount must be whole number");
+            }
+            amount = Math.rint(amount);
+        }
+
+        if (!bypass && amount > 0) {
+            if (amount < settings.minBet() || amount > settings.maxBet()) {
+                throw new IllegalArgumentException("Amount outside limits");
+            }
+        }
+
+        return amount;
+    }
+
     public static boolean isAmountInput(String input) {
         if (input == null || input.isBlank()) {
             return false;

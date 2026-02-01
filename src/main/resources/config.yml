@@ -47,4 +47,4 @@ broadcast:
   message: "<gray>%player% created a coinflip for <aqua>$%amount%</aqua>.</gray>"
 
 messages-format: MINI_MESSAGE
-
+messages-language: "en" # en or de

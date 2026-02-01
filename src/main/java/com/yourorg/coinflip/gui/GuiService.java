@@ -5,15 +5,14 @@ import com.yourorg.coinflip.config.CoinFlipConfig;
 import com.yourorg.coinflip.game.CoinFlipGame;
 import com.yourorg.coinflip.game.GameService;
 import com.yourorg.coinflip.game.GameType;
+import com.yourorg.coinflip.util.SoundUtil;
 import com.yourorg.coinflip.util.InventoryUtil;
 import com.yourorg.coinflip.util.ItemMetaUtil;
 import com.yourorg.coinflip.util.HelpUtil;
 import com.yourorg.coinflip.util.TimeUtil;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -30,7 +29,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -132,8 +130,9 @@ public final class GuiService implements Listener {
     }
 
     private void playSound(Player player, org.bukkit.Sound sound) {
-        Key key = Key.key(sound.getKey().getNamespace(), sound.getKey().getKey());
-        plugin.audiences().player(player).playSound(Sound.sound(key, Sound.Source.MASTER, 1f, 1f));
+        plugin.audiences().player(player).playSound(
+                Sound.sound(SoundUtil.adventureKey(sound), Sound.Source.MASTER, 1f, 1f)
+        );
     }
 
     private boolean openBrowserForm(Player player, int page) {

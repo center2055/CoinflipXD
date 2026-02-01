@@ -42,6 +42,11 @@ class BetUtilTest {
     }
 
     @Test
+    void allowsZeroForConfirmMin() {
+        assertEquals(0D, BetUtil.parseAmountAllowZero("0", ECONOMY_SETTINGS, true));
+    }
+
+    @Test
     void rejectsNegativeAmount() {
         assertThrows(IllegalArgumentException.class,
                 () -> BetUtil.parseAmount("-10", ECONOMY_SETTINGS, false));

@@ -13,6 +13,8 @@ public final class ItemMetaUtil {
     private static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.legacySection();
     private static final Method DISPLAY_NAME_COMPONENT = findDisplayNameComponent();
     private static final Method LORE_COMPONENT = findLoreComponent();
+    private static final Method SET_DISPLAY_NAME = findSetDisplayName();
+    private static final Method SET_LORE = findSetLore();
 
     private ItemMetaUtil() {
     }
@@ -29,7 +31,14 @@ public final class ItemMetaUtil {
                 // Fall back to legacy String API
             }
         }
-        meta.setDisplayName(name == null ? null : LEGACY_SERIALIZER.serialize(name));
+        String legacy = name == null ? null : LEGACY_SERIALIZER.serialize(name);
+        if (SET_DISPLAY_NAME != null) {
+            try {
+                SET_DISPLAY_NAME.invoke(meta, legacy);
+            } catch (ReflectiveOperationException ignored) {
+                // No further fallback available
+            }
+        }
     }
 
     public static void lore(ItemMeta meta, List<Component> lore) {
@@ -45,14 +54,26 @@ public final class ItemMetaUtil {
             }
         }
         if (lore == null) {
-            meta.setLore(null);
+            if (SET_LORE != null) {
+                try {
+                    SET_LORE.invoke(meta, (Object) null);
+                } catch (ReflectiveOperationException ignored) {
+                    // No further fallback available
+                }
+            }
             return;
         }
         List<String> legacyLore = new ArrayList<>(lore.size());
         for (Component line : lore) {
             legacyLore.add(line == null ? "" : LEGACY_SERIALIZER.serialize(line));
         }
-        meta.setLore(legacyLore);
+        if (SET_LORE != null) {
+            try {
+                SET_LORE.invoke(meta, legacyLore);
+            } catch (ReflectiveOperationException ignored) {
+                // No further fallback available
+            }
+        }
     }
 
     private static Method findDisplayNameComponent() {
@@ -66,6 +87,22 @@ public final class ItemMetaUtil {
     private static Method findLoreComponent() {
         try {
             return ItemMeta.class.getMethod("lore", List.class);
+        } catch (NoSuchMethodException ignored) {
+            return null;
+        }
+    }
+
+    private static Method findSetDisplayName() {
+        try {
+            return ItemMeta.class.getMethod("setDisplayName", String.class);
+        } catch (NoSuchMethodException ignored) {
+            return null;
+        }
+    }
+
+    private static Method findSetLore() {
+        try {
+            return ItemMeta.class.getMethod("setLore", List.class);
         } catch (NoSuchMethodException ignored) {
             return null;
         }

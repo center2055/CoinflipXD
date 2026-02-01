@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.OptionalDouble;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -66,7 +67,20 @@ public final class CoinFlipCommand implements CommandExecutor, TabCompleter {
                 }
                 plugin.setConfig(plugin.configService().reload());
                 plugin.messageService().reload();
+                plugin.playerSettingsService().reload();
                 messages.send(sender, "reloaded");
+                return true;
+            }
+            case "confirmmin" -> {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage("Player only command.");
+                    return true;
+                }
+                if (!player.hasPermission("coinflip.use")) {
+                    messages.send(player, "no-permission");
+                    return true;
+                }
+                handleConfirmMin(player, Arrays.copyOfRange(args, 1, args.length));
                 return true;
             }
             case "cancel" -> {
@@ -156,7 +170,9 @@ public final class CoinFlipCommand implements CommandExecutor, TabCompleter {
             if (!checkFundsAndLimits(player, amount, economy, bypass)) {
                 return true;
             }
-            double confirmMin = plugin.config().ui().createConfirmMin();
+            double confirmMin = plugin.playerSettingsService()
+                    .getConfirmMin(player.getUniqueId())
+                    .orElse(plugin.config().ui().createConfirmMin());
             if (confirmMin > 0 && amount < confirmMin) {
                 gameService.createPublicGame(player, amount);
             } else {
@@ -253,6 +269,43 @@ public final class CoinFlipCommand implements CommandExecutor, TabCompleter {
         });
     }
 
+    private void handleConfirmMin(Player player, String[] args) {
+        if (args.length == 0) {
+            double global = plugin.config().ui().createConfirmMin();
+            OptionalDouble personal = plugin.playerSettingsService().getConfirmMin(player.getUniqueId());
+            double effective = personal.orElse(global);
+            String personalText = personal.isPresent()
+                    ? plugin.economyService().formatNumber(personal.getAsDouble())
+                    : "default";
+            messages.send(player, "confirmmin-current",
+                    Placeholder.parsed("effective", plugin.economyService().formatNumber(effective)),
+                    Placeholder.parsed("personal", personalText),
+                    Placeholder.parsed("global", plugin.economyService().formatNumber(global)));
+            return;
+        }
+
+        String input = args[0];
+        if (input.equalsIgnoreCase("default")
+                || input.equalsIgnoreCase("clear")
+                || input.equalsIgnoreCase("reset")) {
+            plugin.playerSettingsService().clearConfirmMin(player.getUniqueId());
+            messages.send(player, "confirmmin-cleared");
+            return;
+        }
+
+        double amount;
+        try {
+            amount = BetUtil.parseAmountAllowZero(input, plugin.config().economy(), true);
+        } catch (IllegalArgumentException ex) {
+            messages.send(player, "confirmmin-invalid");
+            return;
+        }
+
+        plugin.playerSettingsService().setConfirmMin(player.getUniqueId(), amount);
+        messages.send(player, "confirmmin-updated",
+                Placeholder.parsed("amount", plugin.economyService().formatNumber(amount)));
+    }
+
     private void sendInvalidAmount(CommandSender sender) {
         messages.send(sender, "invalid-amount",
                 Placeholder.parsed("min", plugin.economyService().formatNumber(plugin.config().economy().minBet())),
@@ -306,6 +359,7 @@ public final class CoinFlipCommand implements CommandExecutor, TabCompleter {
             suggestions.add("help");
             suggestions.add("stats");
             suggestions.add("cancel");
+            suggestions.add("confirmmin");
             if (hasAdmin(sender)) {
                 suggestions.add("reload");
             }
@@ -322,6 +376,9 @@ public final class CoinFlipCommand implements CommandExecutor, TabCompleter {
             }
             if ("stats".equalsIgnoreCase(args[0])) {
                 return filterPlayerSuggestions(args[1]);
+            }
+            if ("confirmmin".equalsIgnoreCase(args[0])) {
+                return filterSuggestions(Arrays.asList("default", "clear", "reset"), args[1]);
             }
             Player player = sender instanceof Player ? (Player) sender : null;
             if (player != null && player.hasPermission("coinflip.private") && isAmountInput(args[0])) {
