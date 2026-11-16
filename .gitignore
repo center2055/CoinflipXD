@@ -1,10 +1,19 @@
+# Gradle / Maven
+.gradle/
+build/
 target/
+
+# IDE
 .idea/
 *.iml
 .settings/
 .classpath
 .project
 .vscode/
+bin/
+
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
 *.log
 *.DS_Store
-
+run/

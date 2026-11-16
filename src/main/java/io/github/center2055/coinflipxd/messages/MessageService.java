@@ -1,0 +1,194 @@
+package io.github.center2055.coinflipxd.messages;
+
+import io.github.center2055.coinflipxd.CoinFlipPlugin;
+import io.github.center2055.coinflipxd.util.PlaceholderUtil;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.command.CommandSender;
+
+import java.io.File;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Locale;
+import java.util.Objects;
+
+public final class MessageService {
+
+    private final CoinFlipPlugin plugin;
+    private FileConfiguration messages;
+    private MiniMessage miniMessage;
+
+    public MessageService(CoinFlipPlugin plugin) {
+        this.plugin = plugin;
+        load();
+    }
+
+    public void load() {
+        String language = resolveLanguage();
+        String resourceName = resolveResourceName(language);
+        File file = new File(plugin.getDataFolder(), resourceName);
+        if (!file.exists()) {
+            if (plugin.getResource(resourceName) != null) {
+                plugin.saveResource(resourceName, false);
+            } else if (!"messages.yml".equals(resourceName)) {
+                plugin.getLogger().warning("Missing bundled " + resourceName + ", falling back to messages.yml.");
+                resourceName = "messages.yml";
+                file = new File(plugin.getDataFolder(), resourceName);
+                if (!file.exists()) {
+                    plugin.saveResource(resourceName, false);
+                }
+            }
+        }
+        this.messages = YamlConfiguration.loadConfiguration(file);
+        mergeMissingMessageKeys(file, resourceName);
+        this.miniMessage = MiniMessage.miniMessage();
+    }
+
+    private String resolveLanguage() {
+        String raw = plugin.getConfig().getString("messages-language", "en");
+        if (raw == null || raw.isBlank()) {
+            return "en";
+        }
+        return raw.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String resolveResourceName(String language) {
+        if ("de".equals(language)) {
+            return "messages_de.yml";
+        }
+        return "messages.yml";
+    }
+
+    private void mergeMissingMessageKeys(File file, String resourceName) {
+        try (InputStreamReader reader = new InputStreamReader(
+                Objects.requireNonNull(plugin.getResource(resourceName), "Missing bundled " + resourceName),
+                StandardCharsets.UTF_8
+        )) {
+            YamlConfiguration defaults = YamlConfiguration.loadConfiguration(reader);
+            boolean changed = mergeMissingKeys(messages, defaults);
+            if (changed) {
+                messages.save(file);
+            }
+        } catch (Exception ex) {
+            plugin.getLogger().warning("Failed to merge default message keys: " + ex.getMessage());
+        }
+    }
+
+    private boolean mergeMissingKeys(ConfigurationSection target, ConfigurationSection defaults) {
+        boolean changed = false;
+        for (String key : defaults.getKeys(false)) {
+            if (defaults.isConfigurationSection(key)) {
+                ConfigurationSection defSection = defaults.getConfigurationSection(key);
+                if (defSection == null) {
+                    continue;
+                }
+                ConfigurationSection targetSection = target.getConfigurationSection(key);
+                if (targetSection == null) {
+                    targetSection = target.createSection(key);
+                    changed = true;
+                }
+                changed |= mergeMissingKeys(targetSection, defSection);
+                continue;
+            }
+
+            if (!target.contains(key)) {
+                target.set(key, defaults.get(key));
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
+    public Component component(String key, TagResolver... placeholders) {
+        String raw = messages.getString(key);
+        if (raw == null) {
+            return Component.text("Missing message: " + key);
+        }
+        return parse(raw, placeholders);
+    }
+
+    public Component parse(String raw, TagResolver... placeholders) {
+        if (raw == null) {
+            return Component.empty();
+        }
+        if (plugin.config().miniMessage()) {
+            TagResolver resolver = PlaceholderUtil.merge(placeholders);
+            return miniMessage.deserialize(raw, resolver);
+        }
+        return Component.text(raw);
+    }
+
+    public Component prefixed(String key, TagResolver... placeholders) {
+        Component prefix = component("prefix");
+        Component message = component(key, placeholders);
+        return prefix.append(message);
+    }
+
+    public void send(Player player, String key, TagResolver... placeholders) {
+        Audience audience = player(player);
+        audience.sendMessage(prefixed(key, placeholders));
+    }
+
+    public void send(CommandSender sender, String key, TagResolver... placeholders) {
+        Audience audience = sender(sender);
+        audience.sendMessage(prefixed(key, placeholders));
+    }
+
+    public void sendRaw(Player player, String key, TagResolver... placeholders) {
+        Audience audience = player(player);
+        audience.sendMessage(component(key, placeholders));
+    }
+
+    public void sendRaw(CommandSender sender, String key, TagResolver... placeholders) {
+        Audience audience = sender(sender);
+        audience.sendMessage(component(key, placeholders));
+    }
+
+    public void broadcast(String key, TagResolver... placeholders) {
+        Component message = prefixed(key, placeholders);
+        Bukkit.getOnlinePlayers().forEach(player -> player(player).sendMessage(message));
+    }
+
+    public void broadcast(Component message) {
+        Bukkit.getOnlinePlayers().forEach(player -> player(player).sendMessage(message));
+    }
+
+    public void notifyStaff(String key, TagResolver... placeholders) {
+        Component message = prefixed(key, placeholders);
+        Bukkit.getOnlinePlayers().stream()
+                .filter(player -> player.hasPermission("coinflip.notify"))
+                .forEach(player -> player(player).sendMessage(message));
+    }
+
+    public void notifyStaffRaw(String key, TagResolver... placeholders) {
+        Component message = component(key, placeholders);
+        Bukkit.getOnlinePlayers().stream()
+                .filter(player -> player.hasPermission("coinflip.notify"))
+                .forEach(player -> player(player).sendMessage(message));
+    }
+
+    public void reload() {
+        load();
+    }
+
+    public String raw(String key) {
+        return Objects.requireNonNull(messages.getString(key), "Missing message key: " + key);
+    }
+
+    /** On Paper players are Adventure audiences already; the platform bridge is only needed on Spigot. */
+    public Audience player(Player player) {
+        return player instanceof Audience audience ? audience : plugin.audiences().player(player);
+    }
+
+    public Audience sender(CommandSender sender) {
+        return sender instanceof Audience audience ? audience : plugin.audiences().sender(sender);
+    }
+}
+

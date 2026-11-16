@@ -1,0 +1,54 @@
+package io.github.center2055.coinflipxd.util;
+
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.bukkit.Bukkit;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
+
+import java.lang.reflect.Method;
+
+public final class InventoryUtil {
+
+    private static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.legacySection();
+    private static final Method CREATE_INVENTORY_COMPONENT_TITLE = findCreateInventoryComponentTitle();
+    private static final Method CREATE_INVENTORY_STRING_TITLE = findCreateInventoryStringTitle();
+
+    private InventoryUtil() {
+    }
+
+    public static Inventory createInventory(InventoryHolder holder, int size, Component title) {
+        if (CREATE_INVENTORY_COMPONENT_TITLE != null) {
+            try {
+                return (Inventory) CREATE_INVENTORY_COMPONENT_TITLE.invoke(null, holder, size, title);
+            } catch (ReflectiveOperationException ignored) {
+                // Fall back to String title
+            }
+        }
+        String legacyTitle = title == null ? "" : LEGACY_SERIALIZER.serialize(title);
+        if (CREATE_INVENTORY_STRING_TITLE != null) {
+            try {
+                return (Inventory) CREATE_INVENTORY_STRING_TITLE.invoke(null, holder, size, legacyTitle);
+            } catch (ReflectiveOperationException ignored) {
+                // Fall back to no-title method
+            }
+        }
+        return Bukkit.createInventory(holder, size);
+    }
+
+    private static Method findCreateInventoryComponentTitle() {
+        try {
+            return Bukkit.class.getMethod("createInventory", InventoryHolder.class, int.class, Component.class);
+        } catch (NoSuchMethodException ignored) {
+            return null;
+        }
+    }
+
+    private static Method findCreateInventoryStringTitle() {
+        try {
+            return Bukkit.class.getMethod("createInventory", InventoryHolder.class, int.class, String.class);
+        } catch (NoSuchMethodException ignored) {
+            return null;
+        }
+    }
+}
